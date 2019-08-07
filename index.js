@@ -9,10 +9,10 @@ var client = mqtt.connect(config.mqttURL);
 cron.schedule('* * * * *', async ()=> {
     console.log('Running this every minute');
     x = await getSubCountForYT('UC_vcKmg67vjMP7ciLnSxSHQ');
-    console.log(x);
+    // console.log(x);
     var yt_data = JSON.parse(x);
-    console.log(yt_data.items);
-    console.log(yt_data.items[0].statistics.subscriberCount);
+    // console.log(yt_data.items);
+    // console.log(yt_data.items[0].statistics.subscriberCount);
     if (x && yt_data.items) {
         sendUpdateToMqtt('digitalicon/amit/count', yt_data.items[0].statistics.subscriberCount);
     }
@@ -31,8 +31,9 @@ async function getSubCountForYT(channel_id) {
 
 function sendUpdateToMqtt(topic, value) {
     client.publish(topic, value.toString());
-    console.log(topic);
-    console.log(value);
+    // post_log_message(topic, value.toString());
+    // console.log(topic);
+    // console.log(value);
 }
 
 
@@ -48,6 +49,26 @@ client.on('message', function (topic, message) {
 
     console.log(topic);
     console.log(message.toString())
+    post_log_message(topic,{message});
 
 });
 
+async function post_log_message(title, desc) {
+    let headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    console.log('------------------');
+    var msg = await request({
+        method: 'post',
+        url: config.discord_webhook,
+        form : JSON.stringify({
+            "content" : "digital-icon-bridge",
+            "embeds" : [{
+                "title" : title,
+                "description" : JSON.stringify(desc)
+            }]
+        }),
+        headers: headers
+        // json: true
+    });
+    console.log(msg);
+    console.log('------------------');
+}
