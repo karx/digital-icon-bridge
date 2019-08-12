@@ -60,7 +60,7 @@ client.on('message', function (topic, message) {
     console.log(message.toString())
     post_log_message(topic,{message});
 
-    if (topic === "digitalicon" && message === "ready") {
+    if (topic == "digitalicon" && message == "Ready!") {
         updateAboutBadana();
     }
 });
