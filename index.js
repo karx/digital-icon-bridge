@@ -8,6 +8,10 @@ var client = mqtt.connect(config.mqttURL);
 
 cron.schedule('* * * * *', async ()=> {
     console.log('Running this every minute');
+    updateAboutBadana();
+});
+
+async function updateAboutBadana() {
     x = await getSubCountForYT('UC_vcKmg67vjMP7ciLnSxSHQ');
     // console.log(x);
     var yt_data = JSON.parse(x);
@@ -16,7 +20,7 @@ cron.schedule('* * * * *', async ()=> {
     if (x && yt_data.items) {
         sendUpdateToMqtt('digitalicon/amit/count', yt_data.items[0].statistics.subscriberCount);
     }
-});
+}
 
 
 async function getSubCountForYT(channel_id) {
@@ -43,6 +47,11 @@ client.on('connect', function () {
             client.publish('presence', 'Hello mqtt')
         }
     });
+    client.subscribe('digitalicon', function (err) {
+        if (!err) {
+            // client.publish('presence', 'Hello mqtt')
+        }
+    });
 });
 
 client.on('message', function (topic, message) {
@@ -51,6 +60,9 @@ client.on('message', function (topic, message) {
     console.log(message.toString())
     post_log_message(topic,{message});
 
+    if (topic === "digitalicon" && message === "ready") {
+        updateAboutBadana();
+    }
 });
 
 async function post_log_message(title, desc) {
