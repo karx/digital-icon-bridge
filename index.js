@@ -27,10 +27,10 @@ async function updateAboutFlutterArsenal() {
     console.log(github_data_raw);
     
 
-    console.log(github_data);
+    console.log(github_data_raw);
 
-    if (github_data) {
-        sendUpdateToMqtt('digitalicon/flutter_arsenal/count', github_data.repository.ref.target.history.totalCount);
+    if (github_data_raw) {
+        sendUpdateToMqtt('digitalicon/flutter_arsenal/count', github_data_raw.repository.ref.target.history.totalCount);
     }
 }
 
