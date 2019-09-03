@@ -2,12 +2,14 @@ var cron = require('node-cron');
 const request = require("./await-request");
 const config = require("./config.json");
 
-var mqtt = require('mqtt')
+var mqtt = require('mqtt');
 var client = mqtt.connect(config.mqttURL);
+const GraphQLClient = require('graphql-request').GraphQLClient;
 
 
 cron.schedule('* * * * *', async ()=> {
     console.log('Running this every minute');
+    updateAboutFlutterArsenal();
     updateAboutBadana();
 });
 
@@ -15,13 +17,22 @@ async function updateAboutBadana() {
     x = await getSubCountForYT('UC_vcKmg67vjMP7ciLnSxSHQ');
     // console.log(x);
     var yt_data = JSON.parse(x);
-    // console.log(yt_data.items);
-    // console.log(yt_data.items[0].statistics.subscriberCount);
     if (x && yt_data.items) {
         sendUpdateToMqtt('digitalicon/amit/count', yt_data.items[0].statistics.subscriberCount);
     }
 }
 
+async function updateAboutFlutterArsenal() {
+    var github_data_raw = await getDataFromGithub('flutterarsenal','FlutterArsenal');   
+    console.log(github_data_raw);
+    
+
+    console.log(github_data);
+
+    if (github_data) {
+        sendUpdateToMqtt('digitalicon/flutter_arsenal/count', github_data.repository.ref.target.history.totalCount);
+    }
+}
 
 async function getSubCountForYT(channel_id) {
     
@@ -32,12 +43,66 @@ async function getSubCountForYT(channel_id) {
 
 }
 
+async function getDataFromGithub(user, repo) {
+    
+    let headers = {
+        'Authorization': 'token ' + config.github_token,
+        'User-Agent': 'flutterArsenal-cli'
+    };
+
+    var github_graph_url = "https://api.github.com/graphql";
+
+    const g_client = new GraphQLClient(github_graph_url, {
+        headers: headers
+    })
+    const FLUTTER_ARSENAL_GITHUB_PATH = "flutterarsenal/FlutterArsenal";
+    var dataToFetch =
+        `{
+    repository(owner: "${user}", name: "${repo}") {
+      name
+      updatedAt
+      assignableUsers{
+        totalCount
+      }
+      stargazers {
+        totalCount
+      }
+      watchers{
+        totalCount
+      }
+      commitComments {
+        totalCount
+      }
+      forkCount  
+      ref(qualifiedName: "master") {
+        target {
+          ... on Commit {
+            history {
+              totalCount
+            }
+          }
+        }
+      }
+    }
+  }`;
+
+    try {
+        var data = await g_client.request(dataToFetch);
+        return data;
+
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+    return data;
+
+}
 
 function sendUpdateToMqtt(topic, value) {
     client.publish(topic, value.toString());
     // post_log_message(topic, value.toString());
     // console.log(topic);
-    // console.log(value);
+    // sconsole.log(value);
 }
 
 
