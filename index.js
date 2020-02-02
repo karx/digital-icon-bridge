@@ -11,6 +11,7 @@ cron.schedule('* * * * *', async ()=> {
     console.log('Running this every minute');
     updateAboutFlutterArsenal();
     updateAboutBadana();
+    updateAboutOfficialKrat();
 });
 
 async function updateAboutBadana() {
@@ -19,6 +20,15 @@ async function updateAboutBadana() {
     var yt_data = JSON.parse(x);
     if (x && yt_data.items) {
         sendUpdateToMqtt('digitalicon/amit/count', yt_data.items[0].statistics.subscriberCount);
+    }
+}
+
+async function updateAboutOfficialKrat() {
+    x = await getSubCountForYT('UCdc3jIaoro5JMNRxTf3ttrQ');
+    // console.log(x);
+    var yt_data = JSON.parse(x);
+    if (x && yt_data.items) {
+        sendUpdateToMqtt('digitalicon/officialkrat/count', yt_data.items[0].statistics.subscriberCount);
     }
 }
 
@@ -102,7 +112,7 @@ function sendUpdateToMqtt(topic, value) {
     client.publish(topic, value.toString());
     // post_log_message(topic, value.toString());
     // console.log(topic);
-    // sconsole.log(value);
+    // console.log(value);
 }
 
 
