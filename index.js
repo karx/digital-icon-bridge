@@ -8,6 +8,7 @@ var client = mqtt.connect(config.mqttURL);
 
 const { getSubCountForYT } = require("./youtube");
 const { getDataFromGithub } = require("./github");
+const { getStatsFromWaka } = require("./waka-data");
 const { post_log_message } = require("./discord-log");
 
 cron.schedule('* * * * *', async ()=> {
@@ -15,6 +16,7 @@ cron.schedule('* * * * *', async ()=> {
     updateAboutFlutterArsenal();
     updateAboutBadana();
     updateAboutOfficialKrat();
+    updateAboutKaaroCode();
 });
 
 async function updateAboutBadana() {
@@ -44,6 +46,16 @@ async function updateAboutFlutterArsenal() {
     }
 }
 
+async function updateAboutKaaroCode() {
+    var waka_data_raw = await getStatsFromWaka('karx');
+    let waka_stats = JSON.parse(waka_data_raw);
+
+    let mins = parseInt(waka_stats.data.total_seconds / 60);
+    console.log(mins);
+    if (waka_stats) {
+        sendUpdateToMqtt('digitalicon/discordakcount/count', mins);
+    }
+}
 function sendUpdateToMqtt(topic, value) {
     client.publish(topic, value.toString());
     // post_log_message(topic, value.toString());
