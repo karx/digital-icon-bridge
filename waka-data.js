@@ -1,4 +1,4 @@
-
+require("tls").DEFAULT_ECDH_CURVE = "auto"
 const request = require("./await-request");
 const config = require("./config.json");
 
